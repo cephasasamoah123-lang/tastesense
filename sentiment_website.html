@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TasteSense — Restaurant Sentiment AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0A0A0F;
+  --bg2: #111118;
+  --bg3: #18181F;
+  --bg4: #1E1E28;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #F0EFF8;
+  --text2: #9B99B0;
+  --text3: #5C5A70;
+  --green: #00E5A0;
+  --green-dim: rgba(0,229,160,0.12);
+  --green-glow: rgba(0,229,160,0.25);
+  --red: #FF4D6D;
+  --red-dim: rgba(255,77,109,0.12);
+  --amber: #FFB830;
+  --amber-dim: rgba(255,184,48,0.12);
+  --accent: #7B6EF6;
+  --accent-dim: rgba(123,110,246,0.15);
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Grid background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(123,110,246,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(123,110,246,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Glow orb */
+body::after {
+  content: '';
+  position: fixed;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(123,110,246,0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── HEADER ── */
+header {
+  position: relative;
+  z-index: 1;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 36px 40px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  width: 36px; height: 36px;
+  background: var(--accent-dim);
+  border: 1px solid rgba(123,110,246,0.3);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.logo-text {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.logo-text span { color: var(--accent); }
+
+.header-pills {
+  display: flex;
+  gap: 8px;
+}
+
+.pill {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 99px;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  background: var(--bg3);
+  letter-spacing: 0.04em;
+}
+
+.pill.live {
+  border-color: rgba(0,229,160,0.3);
+  color: var(--green);
+  background: var(--green-dim);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.live-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  z-index: 1;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 48px 40px 0;
+  text-align: center;
+}
+
+.hero-eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+
+.hero-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+.hero-title em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--green) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-sub {
+  font-size: 15px;
+  color: var(--text2);
+  line-height: 1.7;
+  max-width: 520px;
+  margin: 0 auto 40px;
+}
+
+/* ── STATS ── */
+.stats-row {
+  position: relative;
+  z-index: 1;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 40px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: border-color 0.2s;
+}
+
+.stat-card:hover { border-color: var(--border2); }
+
+.stat-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.stat-icon.total  { background: var(--accent-dim); }
+.stat-icon.pos    { background: var(--green-dim); }
+.stat-icon.neg    { background: var(--red-dim); }
+
+.stat-info {}
+.stat-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 3px;
+}
+.stat-num.total { color: var(--accent); }
+.stat-num.pos   { color: var(--green); }
+.stat-num.neg   { color: var(--red); }
+.stat-label { font-size: 12px; color: var(--text3); font-weight: 400; }
+
+/* ── MAIN CARD ── */
+main {
+  position: relative;
+  z-index: 1;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 40px 60px;
+}
+
+.main-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.card-top {
+  padding: 32px 36px 28px;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 10px;
+}
+
+textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 14px 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  color: var(--text);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  line-height: 1.6;
+}
+
+textarea:focus {
+  border-color: rgba(123,110,246,0.4);
+  box-shadow: 0 0 0 3px rgba(123,110,246,0.08);
+}
+
+textarea::placeholder { color: var(--text3); }
+
+.btn-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.btn-analyze {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bg);
+  background: var(--green);
+  border: none;
+  padding: 11px 26px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.01em;
+}
+
+.btn-analyze:hover { background: #00ffb3; transform: translateY(-1px); }
+.btn-analyze:active { transform: scale(0.98) translateY(0); }
+.btn-analyze:disabled { background: var(--bg4); color: var(--text3); cursor: not-allowed; transform: none; }
+
+.btn-clear {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text3);
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-clear:hover { border-color: var(--border2); color: var(--text2); }
+
+.char-count { font-size: 12px; color: var(--text3); margin-left: auto; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(0,0,0,0.2);
+  border-top-color: var(--bg);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: none;
+}
+
+/* ── RESULT ── */
+#result { display: none; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.result-wrap {
+  padding: 28px 36px;
+  border-top: 1px solid var(--border);
+  animation: fadeUp 0.35s ease;
+}
+
+.result-inner {
+  border-radius: 14px;
+  padding: 24px 28px;
+  border: 1px solid;
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.result-inner.positive { background: var(--green-dim); border-color: rgba(0,229,160,0.2); }
+.result-inner.negative { background: var(--red-dim);   border-color: rgba(255,77,109,0.2); }
+.result-inner.neutral  { background: var(--amber-dim); border-color: rgba(255,184,48,0.2); }
+
+.result-emoji { font-size: 40px; line-height: 1; flex-shrink: 0; }
+
+.result-body { flex: 1; }
+
+.result-tag {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.positive .result-tag { color: var(--green); }
+.negative .result-tag { color: var(--red); }
+.neutral  .result-tag { color: var(--amber); }
+
+.result-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+
+.positive .result-title { color: var(--green); }
+.negative .result-title { color: var(--red); }
+.neutral  .result-title { color: var(--amber); }
+
+.result-desc { font-size: 14px; color: var(--text2); line-height: 1.6; margin-bottom: 14px; }
+
+.result-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+
+.result-pill {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text2);
+}
+
+.conf-bar-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 6px;
+}
+
+.conf-track {
+  height: 4px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.conf-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.7s cubic-bezier(.22,1,.36,1);
+}
+
+.positive .conf-fill { background: var(--green); }
+.negative .conf-fill { background: var(--red); }
+.neutral  .conf-fill { background: var(--amber); }
+
+/* ── EXAMPLES ── */
+.card-bottom {
+  padding: 20px 36px 24px;
+  border-top: 1px solid var(--border);
+}
+
+.examples-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 10px;
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.chip {
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  padding: 6px 14px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.chip:hover {
+  border-color: rgba(123,110,246,0.4);
+  color: var(--text);
+  background: var(--accent-dim);
+}
+
+/* ── HISTORY ── */
+#history-section {
+  display: none;
+  margin-top: 20px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.history-header {
+  padding: 18px 28px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.history-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text2);
+}
+
+.history-clear {
+  font-size: 12px;
+  color: var(--text3);
+  cursor: pointer;
+  transition: color 0.15s;
+  background: none;
+  border: none;
+  font-family: 'Inter', sans-serif;
+}
+
+.history-clear:hover { color: var(--red); }
+
+.history-list { padding: 12px 16px; display: flex; flex-direction: column; gap: 6px; }
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  animation: fadeUp 0.2s ease;
+  transition: border-color 0.15s;
+}
+
+.history-item:hover { border-color: var(--border2); }
+
+.h-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.h-dot.positive { background: var(--green); }
+.h-dot.negative { background: var(--red); }
+.h-dot.neutral  { background: var(--amber); }
+
+.h-text { flex: 1; font-size: 12px; color: var(--text2); line-height: 1.4; }
+.h-text strong { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+.h-text strong.positive { color: var(--green); }
+.h-text strong.negative { color: var(--red); }
+.h-text strong.neutral  { color: var(--amber); }
+
+.h-emoji { font-size: 18px; flex-shrink: 0; }
+
+/* ── FOOTER ── */
+footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 0 40px 40px;
+  font-size: 12px;
+  color: var(--text3);
+  line-height: 2;
+}
+
+@media (max-width: 600px) {
+  header, .stats-row, main { padding-left: 16px; padding-right: 16px; }
+  .hero { padding-left: 16px; padding-right: 16px; }
+  .card-top, .card-bottom { padding-left: 20px; padding-right: 20px; }
+  .result-wrap { padding: 20px; }
+  .stats-row { grid-template-columns: 1fr; }
+  .hero-title { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🍽</div>
+    <div class="logo-text">Taste<span>Sense</span></div>
+  </div>
+  <div class="header-pills">
+    <div class="pill">VADER + TF-IDF</div>
+    <div class="pill live"><div class="live-dot"></div>Model live</div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-eyebrow">NLP · Sentiment Analysis</div>
+  <h1 class="hero-title">What are diners<br><em>really saying?</em></h1>
+  <p class="hero-sub">Paste any restaurant review and our AI model — trained on 9,810 real reviews — instantly detects the sentiment with 84% accuracy.</p>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-icon total">📊</div>
+    <div class="stat-info">
+      <div class="stat-num total" id="stat-total">0</div>
+      <div class="stat-label">Reviews analysed</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon pos">✅</div>
+    <div class="stat-info">
+      <div class="stat-num pos" id="stat-pos">0</div>
+      <div class="stat-label">Positive</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon neg">❌</div>
+    <div class="stat-info">
+      <div class="stat-num neg" id="stat-neg">0</div>
+      <div class="stat-label">Negative</div>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="main-card">
+    <div class="card-top">
+      <div class="card-label">Enter a review</div>
+      <textarea id="review-input"
+        oninput="document.getElementById('char-count').textContent=this.value.length+' / 1000';"
+        placeholder="e.g. The jollof rice was absolutely incredible — perfectly seasoned with a rich smoky base. Staff were warm and attentive throughout the evening..."
+        maxlength="1000"></textarea>
+      <div class="btn-row">
+        <button class="btn-analyze" id="analyze-btn" onclick="analyzeReview()">
+          <span id="btn-text">Analyse sentiment</span>
+          <div class="spinner" id="spinner"></div>
+        </button>
+        <button class="btn-clear" onclick="clearAll()">Clear</button>
+        <span class="char-count" id="char-count">0 / 1000</span>
+      </div>
+    </div>
+
+    <div id="result">
+      <div class="result-wrap">
+        <div class="result-inner" id="result-inner">
+          <div class="result-emoji" id="result-emoji"></div>
+          <div class="result-body">
+            <div class="result-tag">Sentiment detected</div>
+            <div class="result-title" id="result-title"></div>
+            <div class="result-desc"  id="result-desc"></div>
+            <div class="result-pills" id="result-pills"></div>
+            <div class="conf-bar-label">Confidence score</div>
+            <div class="conf-track">
+              <div class="conf-fill" id="conf-fill" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-bottom">
+      <div class="examples-label">Try an example</div>
+      <div class="chips">
+        <span class="chip" onclick="loadExample(this)">Best pasta I have ever had</span>
+        <span class="chip" onclick="loadExample(this)">Cold food and rude staff</span>
+        <span class="chip" onclick="loadExample(this)">Decent enough for the price</span>
+        <span class="chip" onclick="loadExample(this)">The tiramisu was heavenly!</span>
+        <span class="chip" onclick="loadExample(this)">Never coming back. Awful.</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="history-section">
+    <div class="history-header">
+      <div class="history-title">Recent analyses</div>
+      <button class="history-clear" onclick="clearHistory()">Clear all</button>
+    </div>
+    <div class="history-list" id="history-list"></div>
+  </div>
+</main>
+
+<footer>
+  Trained on 9,810 restaurant reviews &nbsp;&middot;&nbsp;
+  VADER + TF-IDF + Logistic Regression &nbsp;&middot;&nbsp;
+  Accuracy 84.39%
+</footer>
+
+<script>
+  var stats = { total: 0, positive: 0, negative: 0 };
+  var reviewHistory = [];
+
+  document.getElementById('review-input').addEventListener('input', function() {
+    document.getElementById('char-count').textContent = this.value.length + ' / 1000';
+  });
+
+  var LEXICON = {
+    'love': 3.0, 'loved': 3.2, 'amazing': 3.1, 'fantastic': 3.2,
+    'wonderful': 3.1, 'excellent': 3.0, 'outstanding': 3.3, 'superb': 3.2,
+    'delicious': 2.9, 'incredible': 3.0, 'perfect': 3.0, 'great': 2.5,
+    'good': 1.9, 'nice': 1.8, 'enjoy': 1.8, 'enjoyed': 2.0, 'best': 2.8,
+    'brilliant': 2.9, 'divine': 3.0, 'heavenly': 3.1, 'fresh': 1.9,
+    'generous': 2.0, 'recommend': 2.4, 'cozy': 2.0, 'friendly': 2.1,
+    'welcoming': 2.2, 'attentive': 2.0, 'flawless': 3.0, 'crispy': 1.7,
+    'tender': 1.9, 'creamy': 1.8, 'flavorful': 2.5, 'exceptional': 2.9,
+    'phenomenal': 3.2, 'lovely': 2.4, 'impressed': 2.2, 'romantic': 2.0,
+    'terrible': -3.0, 'awful': -3.1, 'horrible': -3.2, 'disgusting': -3.4,
+    'dreadful': -2.9, 'poor': -2.2, 'bad': -2.5, 'worst': -3.2,
+    'disappointing': -2.6, 'disappointed': -2.5, 'rude': -2.8, 'slow': -1.5,
+    'cold': -1.8, 'bland': -2.2, 'overpriced': -2.3, 'stale': -2.5,
+    'inedible': -3.0, 'undercooked': -2.8, 'watery': -2.1, 'tasteless': -2.5,
+    'mediocre': -1.8, 'regret': -2.4, 'wrong': -1.9, 'dirty': -2.7,
+    'unhappy': -2.3, 'soggy': -2.0, 'greasy': -1.9, 'wilted': -1.8,
+    'acceptable': 0.5, 'decent': 0.7, 'okay': 0.3, 'fine': 0.4,
+    'average': 0.1, 'alright': 0.5, 'reasonable': 0.8, 'adequate': 0.4,
+    'ordinary': 0.1, 'standard': 0.2,
+    'not': -0.7, 'never': -1.5, 'no': -0.5, 'nothing': -0.5
+  };
+
+  var INTENSIFIERS = {
+    'very': 1.3, 'really': 1.2, 'absolutely': 1.5, 'extremely': 1.5,
+    'highly': 1.3, 'super': 1.3, 'incredibly': 1.4, 'totally': 1.3
+  };
+
+  var NEGATORS = ['not', 'never', 'no', 'nothing', 'neither', 'nor', 'hardly', 'barely'];
+
+  function vaderScore(text) {
+    var words = text.toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(Boolean);
+    var scores = [];
+    for (var i = 0; i < words.length; i++) {
+      var w = words[i];
+      if (w in LEXICON) {
+        var s = LEXICON[w];
+        if (i > 0 && words[i - 1] in INTENSIFIERS) s = s * INTENSIFIERS[words[i - 1]];
+        var negated = false;
+        for (var j = Math.max(0, i - 3); j < i; j++) {
+          if (NEGATORS.indexOf(words[j]) !== -1) { negated = true; break; }
+        }
+        if (negated) s = s * -0.74;
+        scores.push(s);
+      }
+    }
+    if (!scores.length) return 0;
+    var sum = scores.reduce(function(a, b) { return a + b; }, 0);
+    var compound = sum / Math.sqrt(sum * sum + 15);
+    return Math.max(-1, Math.min(1, compound));
+  }
+
+  var POS_KW = ['love','amazing','fantastic','wonderful','excellent','outstanding','superb',
+    'delicious','incredible','perfect','great','brilliant','divine','heavenly','fresh',
+    'friendly','recommend','tender','creamy','exceptional','phenomenal','best','enjoyed',
+    'attentive','welcoming','flawless','generous','impressive','lovely'];
+  var NEG_KW = ['terrible','awful','horrible','disgusting','dreadful','poor','bad','worst',
+    'disappointing','rude','cold','bland','overpriced','stale','inedible','undercooked',
+    'watery','tasteless','mediocre','regret','dirty','wrong','soggy','greasy','wilted',
+    'chaotic','poisoning','ignored','dismiss'];
+
+  function mlScore(text) {
+    var lower = text.toLowerCase();
+    var words = lower.replace(/[^a-z\s]/g, ' ').split(/\s+/);
+    var pos = 0, neg = 0;
+    for (var i = 0; i < words.length; i++) {
+      if (POS_KW.indexOf(words[i]) !== -1) pos++;
+      if (NEG_KW.indexOf(words[i]) !== -1) neg++;
+    }
+    if (/ (not good|not great|not worth|not recommend)/.test(lower)) neg += 2;
+    if (/ (highly recommend|really good|very good|really great)/.test(lower)) pos += 2;
+    if (pos === 0 && neg === 0) return 0;
+    return (pos - neg) / (pos + neg + 2);
+  }
+
+  function analyzeReview() {
+    var text = document.getElementById('review-input').value.trim();
+    if (!text) { text = document.getElementById('review-input').value; }
+    if (!text || text.length === 0) { alert('Please enter a review first.'); return; }
+
+    var btn = document.getElementById('analyze-btn');
+    document.getElementById('btn-text').textContent = 'Analysing...';
+    document.getElementById('spinner').style.display = 'block';
+    btn.disabled = true;
+
+    fetch('http://127.0.0.1:5000/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: text })
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+      var icons = { positive: '😊', negative: '😞', neutral: '😐' };
+      var descs = {
+        positive: 'Strong positive signals detected — the diner clearly had a great experience.',
+        negative: 'Negative sentiment detected — key concerns around quality or service flagged.',
+        neutral:  'Balanced review — neither strongly positive nor negative overall.'
+      };
+      var result = {
+        sentiment:  data.sentiment,
+        confidence: data.confidence,
+        emoji:      icons[data.sentiment],
+        desc:       descs[data.sentiment],
+        vader:      parseFloat(data.vader).toFixed(3),
+        ml:         (data.confidence / 100).toFixed(3)
+      };
+      showResult(result, text);
+      stats.total++;
+      if (result.sentiment === 'positive') stats.positive++;
+      if (result.sentiment === 'negative') stats.negative++;
+      document.getElementById('stat-total').textContent = stats.total;
+      document.getElementById('stat-pos').textContent   = stats.positive;
+      document.getElementById('stat-neg').textContent   = stats.negative;
+      addToHistory(text, result);
+      document.getElementById('btn-text').textContent  = 'Analyse again';
+      document.getElementById('spinner').style.display = 'none';
+      btn.disabled = false;
+    })
+    .catch(function() {
+      alert('Cannot connect to server. Make sure app.py is running in Command Prompt!');
+      document.getElementById('btn-text').textContent  = 'Analyse sentiment';
+      document.getElementById('spinner').style.display = 'none';
+      btn.disabled = false;
+    });
+  }
+
+  function showResult(r, text) {
+    var inner = document.getElementById('result-inner');
+    inner.className = 'result-inner ' + r.sentiment;
+    document.getElementById('result-emoji').textContent = r.emoji;
+    var titles = { positive: 'Positive review', negative: 'Negative review', neutral: 'Neutral review' };
+    document.getElementById('result-title').textContent = titles[r.sentiment];
+    document.getElementById('result-desc').textContent  = r.desc;
+    var wordCount = text.split(/\s+/).filter(Boolean).length;
+    document.getElementById('result-pills').innerHTML =
+      '<span class="result-pill">Confidence: ' + r.confidence + '%</span>' +
+      '<span class="result-pill">VADER: ' + r.vader + '</span>' +
+      '<span class="result-pill">ML: ' + r.ml + '</span>' +
+      '<span class="result-pill">' + wordCount + ' words</span>';
+    document.getElementById('conf-fill').style.width = r.confidence + '%';
+    var el = document.getElementById('result');
+    el.style.display = 'block';
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function addToHistory(text, r) {
+    reviewHistory.unshift({ text: text, sentiment: r.sentiment, confidence: r.confidence, emoji: r.emoji });
+    if (reviewHistory.length > 6) reviewHistory.pop();
+    document.getElementById('history-section').style.display = 'block';
+    document.getElementById('history-list').innerHTML = reviewHistory.map(function(h) {
+      var snippet = h.text.length > 85 ? h.text.slice(0, 85) + '...' : h.text;
+      return '<div class="history-item">' +
+        '<div class="h-dot ' + h.sentiment + '"></div>' +
+        '<div class="h-text"><strong class="' + h.sentiment + '">' + h.sentiment + '</strong> &middot; ' +
+        h.confidence + '% confidence<br>' + snippet + '</div>' +
+        '<div class="h-emoji">' + h.emoji + '</div></div>';
+    }).join('');
+  }
+
+  function clearHistory() {
+    reviewHistory = [];
+    document.getElementById('history-section').style.display = 'none';
+  }
+
+  function clearAll() {
+    document.getElementById('review-input').value     = '';
+    document.getElementById('result').style.display   = 'none';
+    document.getElementById('char-count').textContent = '0 / 1000';
+    document.getElementById('btn-text').textContent   = 'Analyse sentiment';
+  }
+
+  function loadExample(el) {
+    var examples = [
+      "Best pasta I have ever had! The sauce was rich and full of flavour, perfectly cooked with fresh ingredients. Staff were warm and attentive — a truly wonderful dining experience.",
+      "Absolutely terrible. Food arrived cold and the waiter was dismissive and rude throughout. Waited 40 minutes for a mediocre dish that was not even what I ordered. Never returning.",
+      "It was okay. Nothing spectacular but nothing terrible either. Pasta was a bit overcooked but portions were fair for the price. Probably would not go out of my way to return.",
+      "Everything was incredible from start to finish. The tiramisu was heavenly — light, creamy and perfectly balanced. Service was attentive and the atmosphere was cozy and romantic.",
+      "Worst dining experience of my life. Undercooked chicken, dirty cutlery and staff completely ignored our table for 20 minutes. Disgusting hygiene standards. Never coming back."
+    ];
+    var idx = Array.from(el.parentNode.children).indexOf(el);
+    var text = examples[idx] || el.textContent.trim();
+    document.getElementById('review-input').value     = text;
+    document.getElementById('char-count').textContent = text.length + ' / 1000';
+  }
+</script>
+</body>
+</html>
